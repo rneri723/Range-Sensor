@@ -1,0 +1,77 @@
+#include "mbed.h"
+#include "TextLCD.h"
+
+//Declare all of the necessary pins and variables for the components 
+DigitalIn Echo(D4); //The echo pin is connected to digital pin 4
+DigitalOut Trigger(D3); // The trigger pin is connected to digital pin 3
+DigitalOut RedLed(D6); //The RGB LED has 3 different led's in one, so we need 3 separate digital pins 
+DigitalOut GreenLed(D5);
+DigitalOut BlueLed(D2);
+TextLCD lcd(D7, D8, D9, D10, D11, D12); //The pins on the lcd need to be connected to the digital pins to function properly 
+
+Timer sensor;//We need a variable to store the duration of the pulses
+
+int main() {
+    // Set two variables to store the values that the sensor uses 
+    int distance = 0;
+    int poll = 0; //Poll is a termed used in computer science that refers to when the computer waits for the devioce to k be ready in order to access it
+    sensor.reset();// This resets the sonar everytime the program executes the loop
+    sensor.start();//This starts the sonar everytime the program executs the loop
+    // We need a loop to read in the delay of the pulse before we do anything else 
+    // In other words, we need to know how long the delay of each pulse is to get a correct reading 
+    while (Echo == 2){};
+    sensor.stop();
+    poll = sensor.read_us();
+    //Now we can start using the loop to give us the results that we need
+    while (1){//Infinite loop
+        Trigger = 1;
+        sensor.reset();
+        wait_us(10);
+        Trigger = 0;
+        
+        while (Echo == 0){};
+        sensor.start();
+        while (Echo == 1){};
+        sensor.stop();
+        
+        distance = (sensor.read_us()-poll)/58;
+        lcd.locate (0, 0);
+        lcd.printf("The distance is");
+        lcd.locate(0, 1);
+        lcd.printf(" %d", distance);
+    
+    if (distance >=61){
+        RedLed = 0;
+        GreenLed = 0;
+        BlueLed = 0;
+        lcd.locate(0, 1);
+        lcd.printf(" 0 cm ");}
+    if (distance <=60){
+        RedLed = 1;
+        GreenLed = 0;
+        BlueLed = 1;
+       if (distance >= 41){
+           RedLed = 1;
+           GreenLed = 0; 
+           BlueLed = 1;}
+           }
+    if (distance <= 40){
+        RedLed = 0;
+        GreenLed = 0;
+        BlueLed = 1;
+        if (distance > 21){
+            RedLed = 0;
+            GreenLed = 0;
+            BlueLed = 1;}
+            }
+    if (distance <=20){
+        RedLed = 1;
+        GreenLed = 0;
+        BlueLed = 0;
+        if (distance > 1){
+            RedLed = 1;
+            GreenLed = 0;
+            BlueLed = 0;}    
+    }
+}
+}
